@@ -4,7 +4,7 @@ A scikit-learn-based model that incorporates ML pipelines, hyperparameter optimi
 
 ## Dependencies 
 
-ml_workflow is compatible with Python 3.8 or newer.  It requires the following packages:
+ml-pipeline is compatible with Python 3.8 or newer.  It requires the following packages:
 
 ```
 numpy 
@@ -22,9 +22,9 @@ pip install -e .
 ```
 
 
-### Using ml_workflow 
+### Using ml-pipeline
 ```python
-from ml_workflow import TunedEstimator
+from ml-pipeline.import TunedEstimator
 from sklearn.ensemble import HistGradientBoostingRegressor
 
 def mse_scorer(estimator, X, y):
