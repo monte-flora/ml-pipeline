@@ -25,7 +25,7 @@ from typing import Optional, Literal, List
 import numpy as np
 from sklearn.pipeline import Pipeline as SKPipeline
 from sklearn.impute import SimpleImputer, IterativeImputer
-from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, OrdinalEncoder
+from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, OrdinalEncoder, OneHotEncoder 
 from sklearn.decomposition import PCA
 from sklearn.compose import ColumnTransformer
 from imblearn.pipeline import Pipeline as IMBPipeline
@@ -133,20 +133,27 @@ class PreProcessPipeline:
         resampler_class = self._RESAMPLERS[self.resample]
         return ('resampler', resampler_class(random_state=42))
 
+    def _make_one_hot_encoding(self, ):
+        
+        encoder = OneHotEncoder()
+        
+        return ('one_hot_encoder', encoder)
+    
+    
     def _make_column_transformer(self, numeric_transformers):
         """Create column transformer for mixed numeric/categorical features."""
         # Categorical pipeline: encode then apply numeric transforms
-        categorical_pipeline = [
-            ('encoder', OrdinalEncoder(
-                handle_unknown="use_encoded_value", 
-                unknown_value=np.nan
-            ))
-        ] + numeric_transformers
+        categorical_transformers = [ self._make_one_hot_encoding()
+            #('encoder', OrdinalEncoder(
+            #    handle_unknown="use_encoded_value", 
+            #    unknown_value=np.nan
+            #))
+        ] #+ numeric_transformers
         
         transformer = ColumnTransformer(
             transformers=[
                 ("num", SKPipeline(numeric_transformers), self.numeric_features),
-                ("cat", SKPipeline(categorical_pipeline), self.categorical_features),
+                ("cat", SKPipeline(categorical_transformers), self.categorical_features),
             ]
         )
         
