@@ -31,11 +31,11 @@ setup(
     ],
     install_requires=[
         'scikit-learn>=1.0.2',  # Changed == to >= for flexibility
-        'scikit-learn-intelex>=2023.0.1',
+        #'scikit-learn-intelex>=2023.0.1',
         'scikit-image>=0.19',
         'xarray>=0.18',
         'imbalanced-learn',
-        'pandas>-1.3.0',
+        'pandas>=1.3.0',
         'hyperopt',
         'lightgbm',
         'numpy>=1.20',  # Add explicit numpy requirement
