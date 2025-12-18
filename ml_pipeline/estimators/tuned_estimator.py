@@ -104,7 +104,10 @@ class TunedEstimator(BaseEstimator, ClassifierMixin,
         self.calibration_cv_kwargs = {} if calibration_cv_kwargs is None else calibration_cv_kwargs
         
         self.estimator = estimator 
-        
+
+    def set_configs(self, config_dict):
+        self.config_ = config_dict 
+
     def get_pipeline(self, estimator, return_cache=False):
         if self.pipeline_kwargs:
             return PreProcessPipeline(**self.pipeline_kwargs).get_pipeline(estimator)
@@ -220,21 +223,41 @@ class TunedEstimator(BaseEstimator, ClassifierMixin,
         """
         return self.model_.predict(X) 
         
-    def save(self, fname, keras=False): 
+    def save(self, fname, save_metadata=True, keras=False):
         
+        model_to_save = self.model_
+
         if keras:
-            # Save the Keras model first:
+            # Save keras submodel separately
             keras_fname = fname.replace('.joblib', '_keras_model.h5')
             print(f'{keras_fname=}')
-            self.model_.named_steps['model'].model.save(keras_fname)
+            model_to_save.named_steps['model'].model.save(keras_fname)
 
-            # This hack allows us to save the sklearn pipeline with a keras model
-            self.model_.named_steps['model'] = None
+            # Remove keras model from the sklearn pipeline for pickling
+            model_to_save = deepcopy(model_to_save)
+            model_to_save.named_steps['model'] = None
 
-        data = {'model' : self.model_, 
-                'X' : self.X_, 
-                'y' : self.y_,
-               }
-        joblib.dump(data, fname, compress=3)
-        
+        # ───────────────────────────────────────────────
+        # 1. Save MODEL ONLY (small file for inference)
+        # ───────────────────────────────────────────────
+        model_fname = fname.replace(".joblib", "_model.joblib")
+        joblib.dump(model_to_save, model_fname, compress=3)
+
+        # ───────────────────────────────────────────────
+        # 2. Save METADATA (optional)
+        # ───────────────────────────────────────────────
+        if save_metadata:
+            metadata_fname = fname.replace(".joblib", "_metadata.joblib")
+            metadata = {
+                'X': self.X_,
+                'y': self.y_,
+                'feature_names': self.X_.columns,
+                'config': getattr(self, "config_", None),
+            }
+            joblib.dump(metadata, metadata_fname, compress=3)
+
+        print(f"Saved model to  : {model_fname}")
+        if save_metadata:
+            print(f"Saved metadata to: {metadata_fname}")
+            
         
